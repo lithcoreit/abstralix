@@ -1,0 +1,42 @@
+// Example 3: TypeScript Microservice
+// Demonstrates: compiling to TypeScript (@lang = "typescript") with modular linking.
+
+folder ts_auth_service {
+    @lang = "typescript"
+    @max_try = 3
+
+    file validator.ts {
+        @info = "Email and password validation routines"
+
+        void validate_email {
+            @info = "Checks if email string matches standard email format"
+            @in = { email = "string" }
+            @out = { isValid = "boolean" }
+            @context = "Check if email is valid using a standard regex test. Return true if valid, false otherwise."
+        }
+
+        void validate_password {
+            @info = "Verifies password length is at least 8 characters"
+            @in = { password = "string" }
+            @out = { isValid = "boolean" }
+            @context = "Return true if password length is >= 8, otherwise false."
+        }
+    }
+
+    file token_service.ts {
+        @import = ["/ts_auth_service/validator.ts"]
+
+        void generate_session_token {
+            @use = ["validate_email", "validate_password"]
+            @info = "Validates credentials and returns base64 session token"
+            @in = { email = "string", password = "string" }
+            @out = { token = "string" }
+            @context = """
+            1. If !validate_email(email) or !validate_password(password), throw new Error('Invalid credentials').
+            2. Generate a mock base64 token from (email + ':' + Date.now()).
+            3. Return token string.
+            """
+            @checkpoint = true
+        }
+    }
+}

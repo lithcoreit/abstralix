@@ -1,0 +1,56 @@
+// Example 2: Text Analysis & Frequency Pipeline
+// Demonstrates: libraries (@lib), regex, multi-module linking via @use.
+
+folder text_analyzer {
+    @lang = "python"
+    @lib = ["re", "collections"]
+    @max_try = 3
+
+    folder core {
+        file tokenizer.py {
+            @info = "Extracts alphanumeric words from unstructured text"
+
+            void tokenize_words {
+                @info = "Extracts lowercase alphanumeric words (length >= 2)"
+                @in = { text = "str" }
+                @out = { words = "list" }
+                @context = """
+                Extract all alphanumeric words from 'text' using regex re.findall(r'\b[a-zA-Z0-9_]+\b', text).
+                Filter to keep only words where len(word) >= 2, and convert each word to lowercase.
+                Return list of words.
+                """
+                @invariant = """
+                res = input(text="Hello, World! This is a test: 42 apples.")
+                expected = ["hello", "world", "this", "is", "test", "42", "apples"]
+                if res != expected:
+                    incomplete(f"Expected {expected}, got {res}")
+                complete()
+                """
+            }
+        }
+
+        file statistics.py {
+            @import = ["/text_analyzer/core/tokenizer.py"]
+
+            void compute_top_words {
+                @use = ["tokenize_words"]
+                @info = "Tokenizes text and returns the top N most frequent words dict"
+                @in = { text = "str", top_n = "int" }
+                @out = { frequencies = "dict" }
+                @context = """
+                1. Call words = tokenize_words(text).
+                2. Use collections.Counter(words) to find frequencies.
+                3. Return dictionary of top_n most common words: {word: count}.
+                """
+                @checkpoint = true
+                @invariant = """
+                sample = "apple orange banana apple orange apple"
+                top = input(text=sample, top_n=2)
+                if top != {"apple": 3, "orange": 2}:
+                    incomplete(f"Expected top 2 to be apple:3, orange:2, got {top}")
+                complete()
+                """
+            }
+        }
+    }
+}

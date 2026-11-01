@@ -1,0 +1,41 @@
+// Example 1: Beginner Math Utilities
+// Demonstrates: basic folder, file, void, @in, @out, and simple @invariant.
+
+folder math_kit {
+    @lang = "python"
+    @max_try = 3
+
+    file calculations.py {
+        @info = "Basic arithmetic and geometry helper functions"
+
+        void circle_area {
+            @info = "Computes area of a circle given its radius: pi * r^2"
+            @in = { radius = "float" }
+            @out = { area = "float" }
+            @context = "Calculate circle area (pi * radius * radius) with pi=3.14159, return rounded to 2 decimal places."
+            @invariant = """
+            if input(radius=1.0) != 3.14:
+                incomplete(f"Area of r=1.0 should be 3.14, got {input(radius=1.0)}")
+            if input(radius=2.0) != 12.57:
+                incomplete(f"Area of r=2.0 should be 12.57, got {input(radius=2.0)}")
+            complete()
+            """
+        }
+
+        void clamp {
+            @info = "Clamps number val within [min_val, max_val] range"
+            @in = { val = "float", min_val = "float", max_val = "float" }
+            @out = { clamped = "float" }
+            @context = "Return min_val if val < min_val, max_val if val > max_val, otherwise return val."
+            @invariant = """
+            if input(val=5.0, min_val=0.0, max_val=10.0) != 5.0:
+                incomplete("5 inside [0, 10] should remain 5")
+            if input(val=-2.0, min_val=0.0, max_val=10.0) != 0.0:
+                incomplete("-2 clamped to [0, 10] should be 0")
+            if input(val=15.0, min_val=0.0, max_val=10.0) != 10.0:
+                incomplete("15 clamped to [0, 10] should be 10")
+            complete()
+            """
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+  "settings": {
+    "dev_mode": false,
+    "default_output": "./build"
+  },
+  "defaults": {
+    "@max_try": 3,
+    "@max_session": 2,
+    "@judges": 0,
+    "@rollback_depth": 2
+  },
+  "providers": [
+    {
+      "name": "local_lm_studio",
+      "adapter": "openai_compatible",
+      "base_url": "http://localhost:1234/v1",
+      "api_key": "not-needed",
+      "model": "local-model",
+      "roles": ["code_generation", "test_generation", "judging"],
+      "min_complexity": 0.0,
+      "max_complexity": 1.0,
+      "priority": 1,
+      "max_concurrency": 1
+    }
+  ]
+}
