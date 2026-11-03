@@ -4,9 +4,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from rich.console import Console
-from rich.panel import Panel
 from rich.prompt import Prompt
-from rich.syntax import Syntax
 
 from abstralix.config import ConfigManager
 from abstralix.core.ir import IRDocument, IRNode
@@ -63,7 +61,6 @@ class RuntimeEngine:
             self._semaphores[name] = asyncio.Semaphore(limit)
 
     async def _log(self, status: str, message: str, style: str = "white") -> None:
-        """Атомарный вывод строки в консоль без наложения параллельных потоков."""
         async with self._log_lock:
             tag = f"[{status}]"
             console.print(f"[{style}]{tag:<8}[/{style}] {message}")
@@ -160,7 +157,7 @@ class RuntimeEngine:
 
             for v in ready_voids:
                 if self.step_mode:
-                    Prompt.ask(f"\n[bold yellow][STEP][/bold yellow] Press Enter to compile '{v.id}'")
+                    Prompt.ask(f"\n[STEP] Press Enter to compile '{v.id}'")
 
                 v.status = "RUNNING"
                 worker_counter += 1
@@ -201,7 +198,7 @@ class RuntimeEngine:
 
         clean_path = void_node.id.strip("/")
         short_id = "/".join(clean_path.split("/")[1:]) if "/" in clean_path else clean_path
-        await self._log("ROLLBACK", f"{short_id}: sessions exhausted, cascade depth={max_depth}", style="bold yellow")
+        await self._log("ROLLBACK", f"{short_id}: retries exhausted, initiating rollback (depth={max_depth})", style="bold yellow")
 
         for depth_step in seq:
             if depth_step == 0:
@@ -214,13 +211,13 @@ class RuntimeEngine:
                     if anc_node.attributes.get("@inside") is not None:
                         continue
                     anc_short = "/".join(anc_id.strip("/").split("/")[1:])
-                    await self._log("REGEN", f"Regenerating dependency (depth {depth_step}): {anc_short}", style="dim yellow")
+                    await self._log("REGEN", f"Regenerating ancestor (depth {depth_step}): {anc_short}", style="dim yellow")
                     await self._execute_void_sessions(anc_node, f"{worker_name}_rb", total_count)
 
         last_err = void_node.error_history[-1] if void_node.error_history else "Verification failure"
         raise RuntimeAbxError(
             code="RT_ROLLBACK_EXHAUSTED",
-            message=f"Unit '{void_node.id}' could not be compiled after exhausting all retries and rollback steps.\nLast error: {last_err}",
+            message=f"Unit '{void_node.id}' could not be compiled after exhausting retries and rollback.\nLast error: {last_err}",
             hint="Check task specification in @context or review parent dependencies.",
         )
 
@@ -300,7 +297,7 @@ class RuntimeEngine:
                     temperature=current_temp,
                 )
 
-                # Шаг А: AST синтаксис
+                # Check AST syntax
                 syn_ok, syn_err = lang_plugin.check_syntax(candidate_code, void_node.name)
                 if not syn_ok:
                     last_error = syn_err
@@ -309,7 +306,7 @@ class RuntimeEngine:
                     await self._log("RETRY", f"{short_id}: try {try_idx}/{max_tries} syntax error ({err_brief[:60]})", style="yellow")
                     continue
 
-                # Шаг Б: Инвариант
+                # Run sandbox invariant test
                 if active_invariant:
                     sandbox_root, rel_file = self.sandbox.prepare_worker_sandbox(
                         worker_name=worker_name,
@@ -332,10 +329,10 @@ class RuntimeEngine:
                         )
                         void_node.error_history.append(inv_err or "Invariant failed")
                         brief = inv_err.splitlines()[-1] if inv_err else "Invariant failed"
-                        await self._log("RETRY", f"{short_id}: try {try_idx}/{max_tries} failed invariant ({brief[:60]})", style="yellow")
+                        await self._log("RETRY", f"{short_id}: try {try_idx}/{max_tries} invariant failed ({brief[:60]})", style="yellow")
                         continue
 
-                # Шаг В: Судьи
+                # AI Judges
                 if judges_count > 0:
                     judge_ok, judge_err = await self._run_judges(void_node, candidate_code, judges_count)
                     if not judge_ok:
@@ -344,7 +341,7 @@ class RuntimeEngine:
                         await self._log("RETRY", f"{short_id}: judge rejected code", style="yellow")
                         continue
 
-                # Шаг Г: Manual Review
+                # Manual review
                 if void_node.attributes.get("@manual_review") is True:
                     rev_ok, rev_comment = await self._ask_manual_review(void_node, candidate_code)
                     if not rev_ok:
@@ -353,7 +350,7 @@ class RuntimeEngine:
                         await self._log("RETRY", f"{short_id}: rejected by reviewer", style="yellow")
                         continue
 
-                # УСПЕХ
+                # Commit
                 async with self._commit_lock:
                     void_node.generated_code = candidate_code
                     void_node.status = "DONE"
@@ -364,6 +361,7 @@ class RuntimeEngine:
 
                     if void_node.attributes.get("@checkpoint") is True:
                         self.sandbox.create_checkpoint(void_node)
+                        await self._log("CHECKPOINT", f"Snapshot created for {short_id}", style="magenta")
 
                 elapsed = round(time.perf_counter() - start_time, 2)
                 progress_tag = f"[{self._completed_count}/{total_count}]"
@@ -376,10 +374,10 @@ class RuntimeEngine:
         self, void_node: IRNode, candidate_code: str, count: int
     ) -> Tuple[bool, Optional[str]]:
         sys_msg = (
-            "You are a strict semantic code judge for Abstralix 0.5.0.\n"
-            "Verify whether the Python function satisfies the task description (@context).\n"
+            "You are a strict semantic code judge for Abstralix.\n"
+            "Verify whether the function satisfies the task description (@context).\n"
             "If it satisfies the task, reply starting with 'PASS'.\n"
-            "If it fails or has logical flaws, reply starting with 'FAIL:' followed by a short explanation."
+            "If it fails or has logical flaws, reply starting with 'FAIL:' followed by explanation."
         )
         user_msg = (
             f"Task: {void_node.attributes.get('@context')}\n"
@@ -405,16 +403,11 @@ class RuntimeEngine:
         self, void_node: IRNode, candidate_code: str
     ) -> Tuple[bool, Optional[str]]:
         async with self._review_lock:
-            console.print()
-            console.print(
-                Panel(
-                    Syntax(candidate_code, "python", theme="monokai", line_numbers=True),
-                    title=f"[bold yellow]Manual Review: {void_node.id}[/bold yellow]",
-                    border_style="yellow",
-                )
-            )
+            console.print(f"\n--- Manual Review: {void_node.id} ---")
+            console.print(candidate_code)
+            console.print("------------------------------------------")
             choice = Prompt.ask(
-                "Action: [bold green][A]ccept[/bold green] / [bold red][R]eject[/bold red]",
+                "Action: [A]ccept / [R]eject",
                 choices=["a", "r", "A", "R"],
                 default="a",
             ).lower()

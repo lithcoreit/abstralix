@@ -16,7 +16,7 @@
       "base_url": "http://localhost:1234/v1",
       "api_key": "not-needed",
       "model": "local-model",
-      "roles": ["code_generation", "test_generation", "judging"],
+      "roles": [ "code_generation", "test_generation", "judging" ],
       "min_complexity": 0.0,
       "max_complexity": 1.0,
       "priority": 1,

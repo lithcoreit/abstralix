@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "abstralix"
-version = "0.5.0"
-description = "Abstralix 0.5.0 - Declarative Architecture & Intent Compiler"
+version = "0.5.1"
+description = "Abstralix - Declarative Architecture & Intent Compiler"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

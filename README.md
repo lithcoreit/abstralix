@@ -6,10 +6,10 @@
 
 **Declarative Architecture & Intent Compiler for Large-Scale AI Software Engineering**
 
-[![Version](https://img.shields.io/badge/version-0.5.0--preview-blueviolet.svg)](https://github.com/LITHcore/abstralix)
+[![Version](https://img.shields.io/badge/version-0.5.1--preview-blueviolet.svg)](https://github.com/lithcoreit/abstralix)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
-[![Languages](https://img.shields.io/badge/languages-14%20verified-green.svg)](https://github.com/LITHcore/abstralix)
+[![Languages](https://img.shields.io/badge/languages-14%20verified-green.svg)](https://github.com/lithcoreit/abstralix)
 [![Author](https://img.shields.io/badge/author-LITH%3A%3Acore-purple.svg)](mailto:lithcoreit@gmail.com)
 
 </div>
@@ -17,7 +17,7 @@
 ---
 
 > **AI Development Advisory & Disclaimer:**  
-> **Notice:** This project was co-engineered and implemented with the active assistance of Artificial Intelligence. While the core deterministic compiler architecture, type system, DAG resolver, and test sandboxes have undergone verification, this is an experimental public alpha preview (`v0.5.0`). Review generated code, execute tests inside isolated environments, and use with appropriate engineering caution.
+> **Notice:** This project was co-engineered and implemented with the active assistance of Artificial Intelligence. While the core deterministic compiler architecture, type system, DAG resolver, and test sandboxes have undergone verification, this is an experimental public alpha preview (`v0.5.1`). Review generated code, execute tests inside isolated environments, and use with appropriate engineering caution.
 
 ---
 
@@ -57,7 +57,7 @@ Abstralix completely abandons generating whole projects at once:
 ## Quick Start
 
 ### Option A: Standalone Executable (Windows)
-Download `Abstralix.exe` from [Releases](https://github.com/LITHcore/abstralix/releases), put it in any folder or add to `PATH`:
+Download `Abstralix.exe` from [Releases](https://github.com/lithcoreit/abstralix/releases), put it in any folder or add to `PATH`:
 ```powershell
 Abstralix.exe --help
 Abstralix.exe docs user
@@ -65,7 +65,7 @@ Abstralix.exe docs user
 
 ### Option B: From Source (Python 3.11+)
 ```powershell
-git clone https://github.com/LITHcore/abstralix.git
+git clone https://github.com/lithcoreit/abstralix.git
 cd abstralix
 python -m venv venv
 .\venv\Scripts\activate   # Linux/macOS: source venv/bin/activate
@@ -199,10 +199,10 @@ Configure local GPU servers (LM Studio, Ollama) and cloud providers by priority 
 
 ## Roadmap & Next Milestones
 
-- [ ] **Dedicated Model Fine-Tuning (Abstralix-Coder):** Fine-tuning open weights (Qwen2.5-Coder 7B/14B) on verified `.abx_cache/finetune_dataset.jsonl` data for 1-shot compilation.
-- [ ] **VS Code Marketplace Extension:** Official editor extension powered by the built-in `abx lsp`.
-- [ ] **Visual Node-Graph Designer:** Bi-directional Low-Code interface.
-- [ ] **Distributed LAN Compilation:** Cluster worker nodes across multiple PCs.
+- [ ] **Internal Worker Model Fine-Tuning:** Training open-weights models specifically for atomic void code generation, invariant testing, and one-shot self-correction.
+- [ ] **Architect Model Fine-Tuning:** Training dedicated planner models to transform high-level human requirements into deep, multi-file `.abx` architectural specifications.
+- [ ] **Direct Modern IDE Integration:** Official extensions for VS Code, Cursor, and JetBrains powered by the built-in `abx lsp` Language Server Protocol daemon.
+- [ ] **Markup & Domain-Specific Language Support:** Expanding language adapters to include HTML, CSS, SQL, Dockerfile, YAML, and configuration specifications.
 
 ---
 
@@ -210,7 +210,7 @@ Configure local GPU servers (LM Studio, Ollama) and cloud providers by priority 
 
 - **Author:** **LITH::core**
 - **Email:** [lithcoreit@gmail.com](mailto:lithcoreit@gmail.com)
-- **Repository:** [https://github.com/LITHcore/abstralix](https://github.com/LITHcore/abstralix)
+- **Repository:** [https://github.com/lithcoreit/abstralix](https://github.com/lithcoreit/abstralix)
 
 For collaboration, inquiries, or bug reports, contact via email or open an issue on GitHub.
 
